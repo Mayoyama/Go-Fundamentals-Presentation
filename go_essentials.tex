@@ -1,0 +1,491 @@
+% Go Basics cheat sheet -- 2 pages, A4, 2 columns
+% Compile with: pdflatex go_cheatsheet.tex
+\documentclass[9pt]{extarticle}
+
+\usepackage[a4paper, margin=1cm, top=0.9cm, bottom=1.35cm, footskip=0.6cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[scaled=0.92]{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage[table]{xcolor}
+\usepackage{multicol}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{needspace}
+\usepackage{etoolbox}
+\pretocmd{\section}{\needspace{6\baselineskip}}{}{}
+
+% ---------- colours (same as the slides) ----------
+\definecolor{accent}{HTML}{204A96}
+\definecolor{goblue}{HTML}{00ADD8}
+\definecolor{ink}{HTML}{14213D}
+\definecolor{body}{HTML}{3D4A5C}
+\definecolor{codebg}{HTML}{EEF1F5}
+\definecolor{comment}{HTML}{6B7F94}
+\definecolor{rule}{HTML}{DDE1DA}
+\definecolor{tablehead}{HTML}{E4E9E6}
+
+\newcommand{\Go}{\textbf{\textcolor{goblue}{Go}}}
+\newcommand{\kw}[1]{\textcolor{accent}{\texttt{#1}}}
+
+\color{body}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1pt}
+\setlength{\columnsep}{0.6cm}
+\setlength{\columnseprule}{0.3pt}
+\renewcommand{\columnseprulecolor}{\color{rule}}
+
+% ---------- headings ----------
+\titleformat{\section}{\color{accent}\normalsize\bfseries}{}{0pt}{\MakeUppercase}[{\color{rule}\titlerule}]
+\titlespacing*{\section}{0pt}{4pt}{1.5pt}
+\titleformat{\subsection}{\color{ink}\small\bfseries}{}{0pt}{}
+\titlespacing*{\subsection}{0pt}{3pt}{1pt}
+
+% ---------- lists ----------
+\setlist[itemize]{leftmargin=9pt, itemsep=0pt, parsep=0pt, topsep=1pt, label={\textcolor{accent}{\textbullet}}}
+
+% ---------- code ----------
+\lstdefinelanguage{Go}{
+  morekeywords={break,case,chan,const,continue,default,defer,else,fallthrough,
+    for,func,go,goto,if,import,interface,map,package,range,return,select,
+    struct,switch,type,var,nil,true,false,iota},
+  sensitive=true,
+  morecomment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  morestring=[b]",
+  morestring=[b]`,
+}
+\lstset{
+  language=Go,
+  basicstyle=\ttfamily\footnotesize\color{ink},
+  keywordstyle=\color{accent}\bfseries,
+  commentstyle=\color{comment},
+  stringstyle=\color{ink},
+  backgroundcolor=\color{codebg},
+  frame=none,
+  xleftmargin=3pt, xrightmargin=3pt,
+  framexleftmargin=3pt, framexrightmargin=3pt,
+  aboveskip=2pt, belowskip=2pt,
+  columns=fullflexible, keepspaces=true,
+  showstringspaces=false,
+  upquote=true,
+  extendedchars=true,
+  literate={é}{{\'e}}1,
+}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\fancyfoot[L]{\footnotesize\color{body}Shane Petersen \textperiodcentered{} github.com/Mayoyama \textperiodcentered{} CC BY 4.0}
+\fancyfoot[R]{\footnotesize\color{body}\thepage}
+
+\begin{document}
+
+% ---------- title ----------
+{\color{ink}\LARGE\bfseries \Go{} Basics Cheat Sheet}\hfill
+{\small For Python and C/C++ coders starting their first \Go{} project}\par
+\vspace{1pt}{\color{rule}\rule{\linewidth}{0.6pt}}
+\vspace{-4pt}
+
+\begin{multicols*}{2}
+\raggedright
+
+% ======================================================
+\section{What is Go}
+\begin{itemize}
+  \item Compiled like C; syntax reads somewhere between plain C and Python
+  \item Garbage collected: no manual \kw{free} / \kw{delete}
+  \item Built-in concurrency: goroutines and channels (no manual threads)
+  \item No classes or inheritance; interfaces give duck-typing-like behaviour
+  \item Generics since \Go{} 1.18
+\end{itemize}
+\subsection{Strengths}
+\begin{itemize}
+  \item Fast compiles; a single binary, no runtime to install
+  \item Small language (25 keywords), one style enforced by \kw{gofmt}
+  \item Strong standard library: networking, HTTP, JSON, files
+\end{itemize}
+\subsection{Weaknesses}
+\begin{itemize}
+  \item Verbose error handling (\kw{if err != nil} everywhere)
+  \item Less memory control than C/C++/Rust, and usually slower
+  \item Fewer features by design: no exceptions, no inheritance
+  \item Nil pointer crashes are still possible at runtime
+\end{itemize}
+
+% ======================================================
+\section{Running code}
+\begin{lstlisting}
+package main
+
+import "fmt"
+
+func main() {
+    fmt.Println("hello")
+}
+\end{lstlisting}
+\begin{itemize}
+  \item \kw{go run main.go}: compile and run, binary is thrown away
+  \item \kw{go build -o hello}: compile and keep the binary
+  \item \kw{go vet ./...}: check for suspicious mistakes (\kw{./...} = this folder and every folder below)
+  \item \kw{gofmt file.go} prints only; \kw{go fmt ./...} or \kw{gofmt -w .} rewrites files
+  \item \kw{golangci-lint run ./...}: stricter, bundles many linters (separate install)
+\end{itemize}
+
+% ======================================================
+\section{Packages \& imports}
+\begin{lstlisting}
+import (
+    js "encoding/json"   // alias, like `as js`
+    "unicode/utf8"       // full path to ONE package
+)
+n := utf8.RuneCountInString("Intéressant!")
+data, _ := js.Marshal(n)   // use the last part / alias
+\end{lstlisting}
+\begin{itemize}
+  \item A package = a folder of \kw{.go} files, each starting with \kw{package <name>}
+  \item A program needs one \kw{package main} with one \kw{func main()}
+  \item Unused imports \textbf{and} unused variables are compile errors
+\end{itemize}
+
+% ======================================================
+\section{Naming \& visibility}
+\begin{lstlisting}
+func ParseInput() {}   // public: other packages can call it
+func parseInput() {}   // private to this package
+var MaxUsers = 10      // public
+var userCount = 0      // private
+\end{lstlisting}
+\begin{itemize}
+  \item camelCase / PascalCase; snake\_case only for file names
+  \item \textbf{Uppercase} first letter = public (exported); \textbf{lowercase} = private to the package
+  \item Applies to functions, types, struct fields and variables
+  \item Enforced by the compiler (Python's \kw{\_private} is only a convention)
+  \item The boundary is the package, not the struct: no class-level privacy
+\end{itemize}
+
+% ======================================================
+\section{Variables \& zero values}
+\begin{lstlisting}
+var a int            // 0
+var b int = 5
+g := 5               // type inferred, functions only
+const maxSize = 100  // compile-time, basic types only
+
+var s string         // ""
+var ok bool          // false
+var p *int           // nil
+var nums []int       // nil, len 0: append still works
+var ages map[string]int  // nil: reading ok, adding panics
+\end{lstlisting}
+\begin{itemize}
+  \item Every variable starts at its zero value, never garbage like in C
+\end{itemize}
+
+% ======================================================
+\section{Numbers \& bytes}
+\begin{itemize}
+  \item \kw{int} (32/64 bit, default), \kw{int8}..\kw{int64}, \kw{uint8}..\kw{uint64}, \kw{byte}=\kw{uint8}
+  \item \kw{float64} (default), \kw{float32}, \kw{bool}
+  \item \kw{7 / 2} is \kw{3} (truncates like C); no \kw{//} operator (that's a comment)
+  \item Overflow wraps silently: \kw{int8} 127 + 1 = -128 (\kw{math.MaxInt8}, ...)
+  \item \kw{[]byte}: raw bytes for files and network; \kw{[]byte(s)} / \kw{string(b)}
+\end{itemize}
+
+% ======================================================
+\section{Enums}
+\begin{lstlisting}
+type Color int
+const (
+    Red Color = iota   // 0, then counts up
+    Green              // 1
+    Blue               // 2
+)
+\end{lstlisting}
+\begin{itemize}
+  \item No \kw{enum} keyword: a custom int type plus a \kw{const} block
+  \item No value check: \kw{Color(7)} compiles, while Python's \kw{Color(7)} raises \kw{ValueError}
+  \item C++ equivalent: \kw{enum class Color \{ Red, Green, Blue \};}
+\end{itemize}
+
+% ======================================================
+\section{Strings \& runes}
+\begin{lstlisting}
+s := "héllo"
+len(s)                       // 6 bytes, not 5
+utf8.RuneCountInString(s)    // 5 runes
+s = "H" + s[1:]              // immutable: new string
+raw := `no \n escapes`       // like Python r"..."
+msg := fmt.Sprintf("hi %s, you are %d", "Ana", 30)
+m := fmt.Sprintln("hi Ana", 30)  // "hi Ana 30\n"
+b := []byte(s)
+b[0] = 'J'
+s = string(b)                // "Jéllo"
+r := 'c' + 2                 // rune 101; string(r) is "e"
+r = 'c' + rune(n)            // int var needs conversion
+for i, ch := range s {}      // byte index, rune
+\end{lstlisting}
+\begin{itemize}
+  \item \kw{"text"} is a string, \kw{\textquotesingle a\textquotesingle} is a rune (= \kw{int32}); no char type
+  \item Strings are UTF-8 bytes: \kw{len(s)} counts bytes; \kw{"c" + 2} won't compile
+  \item Backtick raw strings have no escapes and can span several lines
+  \item \kw{Sprint}/\kw{Sprintf}/\kw{Sprintln} return a string instead of printing (like Python f-strings)
+\end{itemize}
+
+% ======================================================
+\section{Slices}
+\renewcommand{\arraystretch}{1.1}
+{\footnotesize\ttfamily
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{0.33\linewidth}X@{}}
+\rowcolor{tablehead}\textsf{\textbf{Python}} & \textsf{\textbf{\Go}}\\
+nums = [1, 2, 3]  & nums := []int\{1, 2, 3\}\\
+nums.append(4)    & nums = append(nums, 4)\\
+nums[1:3]         & nums[1:3]\\
+nums[-1]          & nums[len(nums)-1]\\
+3 in nums         & slices.Contains(nums, 3)\\
+nums.sort()       & slices.Sort(nums)\\
+\end{tabularx}}
+\begin{itemize}
+  \item \kw{append} is built in (no import); \kw{in} isn't a keyword
+  \item \kw{slices} (1.21+): \kw{Max}, \kw{Min}, \kw{Reverse}, \kw{Equal}, \kw{Insert}, \kw{Delete}; \kw{sort.Ints}, \kw{sort.Strings}
+  \item \kw{strings}: \kw{ToUpper}, \kw{ToLower}, \kw{TrimSpace}, \kw{ReplaceAll}, \kw{HasPrefix}, \kw{HasSuffix}, \kw{Split}, \kw{Join}
+  \item \kw{[3]int} is a fixed-size array like C; slices are what you'll mostly use
+\end{itemize}
+
+% ======================================================
+\section{Maps}
+{\footnotesize\ttfamily
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{0.33\linewidth}X@{}}
+\rowcolor{tablehead}\textsf{\textbf{Python}} & \textsf{\textbf{\Go}}\\
+ages = \{\}          & ages := map[string]int\{\}\\
+ages["ana"] = 25    & ages["ana"] = 25\\
+del ages["bob"]     & delete(ages, "bob")\\
+"bob" in ages       & \_, ok := ages["bob"]\\
+\end{tabularx}}
+\begin{itemize}
+  \item A missing key gives the zero value, so check \kw{ok}
+  \item Iteration order is random (Python dicts keep insertion order)
+\end{itemize}
+
+\subsection{C++98 equivalents}
+{\footnotesize\ttfamily
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{0.36\linewidth}>{\raggedright\arraybackslash}X@{}}
+\rowcolor{tablehead}\textsf{\textbf{\Go}} & \textsf{\textbf{C++98}}\\
+append(nums, 4)          & nums.push\_back(4);\\
+nums[1:3]                & std::vector<int>(nums.begin() + 1, nums.begin() + 3)\\
+nums[len(nums)-1]        & nums.back()\\
+slices.Contains(nums, 3) & std::find(nums.begin(), nums.end(), 3) != nums.end()\\
+slices.Sort(nums)        & std::sort(nums.begin(), nums.end());\\
+delete(ages, "bob")      & ages.erase("bob");\\
+\_, ok := ages["bob"]    & ages.count("bob")\\
+\end{tabularx}}
+\begin{itemize}
+  \item \kw{find}/\kw{sort} need \kw{<algorithm>}; \kw{std::map} keeps keys sorted
+\end{itemize}
+
+% ======================================================
+\section{Errors are values}
+\begin{lstlisting}
+_, err := fmt.Println("hi")               // even Println returns one
+err = errors.New("file is empty")         // fixed message
+err = fmt.Errorf("cannot open %s", name)  // with values
+\end{lstlisting}
+\begin{itemize}
+  \item \kw{error} is a type, returned like any other value; \kw{nil} means no error
+  \item \kw{errors.New} needs \kw{import "errors"}; \kw{fmt.Errorf} formats like \kw{Sprintf}
+  \item Messages: lowercase, no ending punctuation
+\end{itemize}
+\subsection{Two ways to check}
+\begin{lstlisting}
+n, err := strconv.Atoi("42")   // 1. check on the next line
+if err != nil {
+    return err
+}
+fmt.Println(n)                 // n exists here
+
+if x, ok := ages["bob"]; !ok { // 2. check inside the if
+    fmt.Println("not found")
+} else {
+    fmt.Println(x)
+}                              // x does not exist here
+\end{lstlisting}
+\begin{itemize}
+  \item \kw{ok} is a bool (map lookups, type assertions, channel receives); \kw{err} is an \kw{error}
+  \item Pattern 2 limits the scope of \kw{x} and \kw{ok} to the if/else blocks
+  \item More verbose than try/except, but every failure is handled where it happens
+\end{itemize}
+
+% ======================================================
+\section{Loops: only \texttt{for}}
+\begin{lstlisting}
+for i := 0; i < 5; i++ {}   // C style
+for n < 100 {}              // "while"
+for {}                      // forever
+for i, v := range items {}  // index, value
+for _, v := range items {}  // like: for v in items
+for k, v := range m {}      // key, value
+for k := range m {}         // key only
+for i := range 10 {}        // 0 to 9 (Go 1.22+)
+\end{lstlisting}
+\begin{itemize}
+  \item No \kw{while} keyword; \kw{range} instead of \kw{in}
+  \item Trap: \kw{for v := range items} gives \kw{v} the \textbf{index}, not the value
+\end{itemize}
+
+% ======================================================
+\section{switch}
+\begin{lstlisting}
+switch n {
+case 1:
+    fmt.Println("one")
+    fallthrough             // run the next case's body anyway
+case 2, 3:                  // several values
+    fmt.Println("one, two or three")
+default:
+    fmt.Println("other")
+}                           // n == 1 prints both lines
+\end{lstlisting}
+\begin{itemize}
+  \item No \kw{break} needed: the switch ends after the matching case
+  \item \kw{fallthrough} skips the next case's condition check
+  \item A \kw{case} can hold any code: an \kw{if}, a loop, even another \kw{switch}
+  \item Cleaner than long if/else chains; \kw{gofmt} lines \kw{case} up with \kw{switch}
+\end{itemize}
+
+% ======================================================
+\section{Pointers}
+\begin{lstlisting}
+x := 5
+p := &x
+*p = 10            // x is now 10
+pt := &Point{X: 1}
+pt.X = 5           // no -> needed
+
+func newCounter() *int {
+    n := 0
+    return &n      // fine in Go
+}
+\end{lstlisting}
+\begin{itemize}
+  \item Same as C: \kw{\&x}, \kw{*p}; \kw{nil} is \Go's \kw{NULL}
+  \item Different: no pointer arithmetic, garbage collected, returning \kw{\&local} is safe
+\end{itemize}
+
+% ======================================================
+\section{defer}
+\begin{lstlisting}
+f, err := os.Open("config.txt")
+if err != nil {
+    return err
+}
+defer f.Close()    // runs when the function returns
+\end{lstlisting}
+\begin{itemize}
+  \item Like Python's \kw{with}, but tied to the whole function, not a block
+  \item Several defers run in reverse order
+  \item C++ has no \kw{defer}; RAII destructors are the closest match
+\end{itemize}
+
+% ======================================================
+\section{Small things that won't compile}
+{\footnotesize
+\begin{tabularx}{\linewidth}{@{}>{\ttfamily}p{0.40\linewidth}>{\ttfamily}X@{}}
+\rowcolor{tablehead}\textsf{\textbf{Error}} & \textsf{\textbf{OK}}\\
+if len(s) \{           & if len(s) > 0 \{\\
+n + 1.5  \textcolor{comment}{// n is int} & float64(n) + 1.5\\
+\} \textcolor{comment}{(newline)} else \{ & \} else \{\\
+x = i++, ++i           & i++ \textsf{then} x = i\\
+\end{tabularx}}
+\begin{itemize}
+  \item No truthiness, no implicit conversions, no prefix \kw{++}/\kw{--}
+\end{itemize}
+
+% ======================================================
+\section{Functions}
+\begin{lstlisting}
+func add(a, b int) int {          // shared types grouped
+    return a + b
+}
+
+func divide(a int, b int) (int, error) {
+    if b == 0 {
+        return 0, errors.New("cannot divide by zero")
+    }
+    return a / b, nil
+}
+result, err := divide(10, 2)
+q, _ := divide(9, 3)              // _ discards a value
+\end{lstlisting}
+\begin{itemize}
+  \item No prototypes or headers: a function can be anywhere in the package
+  \item \kw{error} is always the last return value
+  \item Failure: zero value + error. Success: result + \kw{nil}
+  \item Multiple returns look like tuples, but \Go{} has no tuple type
+\end{itemize}
+
+% ======================================================
+\section{Structs}
+\begin{lstlisting}
+type Person struct {
+    Name string
+    Age  int
+}
+p := Person{Name: "Ana", Age: 30}
+r := Person{Name: "Ana"}   // Age 0
+var q Person               // Name "", Age 0
+
+inv := Inventory{}
+inv.Items = make(map[string]int)  // before adding!
+\end{lstlisting}
+\begin{itemize}
+  \item \kw{p.Name} works on a struct or a pointer to one
+  \item Other packages (incl.\ \kw{encoding/json}) only see Capitalised fields; use a tag for lowercase JSON keys:
+  \item Map fields need \kw{make} before adding, or you get a runtime panic
+\end{itemize}
+\begin{lstlisting}
+type User struct {
+    Name string `json:"name"`   // {"name":"Ann"}
+    age  int                    // skipped by json.Marshal
+}
+\end{lstlisting}
+
+% ======================================================
+\section{Methods \& receivers}
+\begin{lstlisting}
+func (p Person) Greet() string {  // value: works on a copy
+    return "hi, I'm " + p.Name
+}
+func (p *Person) Birthday() {     // pointer: changes original
+    p.Age++
+}
+p.Birthday()                      // Go takes &p for you
+\end{lstlisting}
+\begin{itemize}
+  \item Value receiver: method only reads (like a C++ \kw{const} member function)
+  \item Pointer receiver: method changes fields, or struct is large
+  \item Don't mix them on one type: if one needs a pointer, use pointers for all
+  \item A method is a function with a receiver before its name; same idea as passing a struct vs a pointer in C
+  \item Methods are what interfaces are built on (\Go's version of duck typing)
+\end{itemize}
+
+% ======================================================
+\section{NewX functions}
+\begin{lstlisting}
+func NewPerson(name string) *Person {
+    return &Person{Name: name}
+}
+p := NewPerson("Ana")
+\end{lstlisting}
+\begin{itemize}
+  \item No constructors / \kw{\_\_init\_\_}: by convention a plain \kw{New}+type function
+  \item Only needed when a struct needs setup; otherwise use a literal
+\end{itemize}
+
+\end{multicols*}
+\end{document}
