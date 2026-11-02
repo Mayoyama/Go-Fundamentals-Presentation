@@ -8,8 +8,8 @@ It summarises a ~30 minute Go basics presentation I gave to peers at 42 Belgium.
 
 | File | Description |
 |---|---|
-| `go_cheatsheet.pdf` | Ready to read or print |
-| `go_cheatsheet.tex` | LaTeX source |
+| `go_essentials.pdf` | Ready to read or print |
+| `go_essentials.tex` | LaTeX source |
 
 ## Topics covered
 
@@ -35,6 +35,6 @@ AI was used to help with the layout and formatting for the cheatsheet while prac
 
 ## License
 
-[CC BY 4.0](LICENSE). Free to share and adapt it, as long as credit is given.
+[CC BY 4.0](LICENSE). Free to share and adapt, as long as credit is given.
 
 Shane Petersen
